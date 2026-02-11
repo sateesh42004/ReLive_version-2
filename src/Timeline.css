@@ -1,0 +1,97 @@
+.timeline-container {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.timeline-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline-item {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #f8f8f8;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.timeline-item:hover {
+    opacity: 0.6;
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-date {
+    font-size: 0.7rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.timeline-preview {
+    font-size: 1rem;
+    color: #444;
+    line-height: 1.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-mood {
+    font-size: 0.85rem;
+    opacity: 0.6;
+}
+
+.timeline-tags {
+    display: flex;
+    gap: 4px;
+}
+
+.timeline-tag {
+    font-size: 0.65rem;
+    color: #bbb;
+    background: #fafafa;
+    padding: 0 4px;
+    border-radius: 2px;
+}
+
+.timeline-empty {
+    text-align: center;
+    color: #ccc;
+    font-style: italic;
+    padding: 4rem 0;
+    font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .timeline-item {
+        border-bottom-color: #222;
+    }
+
+    .timeline-date {
+        color: #555;
+    }
+
+    .timeline-preview {
+        color: #aaa;
+    }
+
+    .timeline-tag {
+        background: #1a1a1a;
+        color: #555;
+    }
+
+    .timeline-empty {
+        color: #444;
+    }
+}
