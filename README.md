@@ -1,4 +1,4 @@
-# ReLive
+# ReLive (v1.0.0)
 
 ReLive is a minimalist, local-only diary application designed for focused writing and memory preservation. It prioritizes the writing experience by removing distractions and ensuring high-performance responsiveness, even as the diary grows over time.
 
