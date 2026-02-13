@@ -31,11 +31,9 @@ body {
   background-color: #1a0f0a;
   /* Ultra-Premium Horizontal Dark Wood Planks */
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0.85) 90%),
-    url("https://images.unsplash.com/photo-1572097662444-603343b8b917?q=80&w=2574&auto=format&fit=crop");
-  background-size: cover, cover;
+    url("/bg_final.png");
+  background-size: cover;
   background-position: center;
-  background-blend-mode: multiply, normal;
   width: 100vw;
   height: 100vh;
   min-height: 100vh;
@@ -542,4 +540,39 @@ body {
 .ribbon-bookmark.saved .ribbon-label {
   content: "SAVED";
   /* This won't work in CSS, purely style here */
+}
+
+/* Navigation Arrows */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2.5rem;
+  color: rgba(93, 64, 55, 0.3);
+  cursor: pointer;
+  z-index: 150;
+  transition: all 0.3s;
+  padding: 10px;
+  user-select: none;
+  font-family: serif;
+  width: 40px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-arrow:hover {
+  color: rgba(93, 64, 55, 0.8);
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+.nav-arrow.left {
+  left: 5px;
+}
+
+.nav-arrow.right {
+  right: 5px;
 }

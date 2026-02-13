@@ -4,6 +4,7 @@ import Timeline from './Timeline';
 import Search from './Search';
 import { jsPDF } from 'jspdf';
 import './App.css';
+import Themes from './Themes';
 import { auth, signInWithGoogle, logout } from './firebase/auth'; // Firebase Auth restored
 import { onAuthStateChanged } from 'firebase/auth';
 import { getEntry, saveEntry } from './firebase/db'; // Firebase DB restored
@@ -25,6 +26,16 @@ const WRITING_PROMPTS = [
 const MemoizedCalendar = memo(Calendar);
 const MemoizedTimeline = memo(Timeline);
 const MemoizedSearch = memo(Search);
+
+// Theme Definitions
+const THEMES = [
+  { id: 'default', name: 'Classic Wooden', url: '/bg_final.png' },
+  { id: 'dark-wood', name: 'Dark Wood', url: 'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?q=80&w=2574&auto=format&fit=crop' },
+  { id: 'misty-forest', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2500&auto=format&fit=crop' },
+  { id: 'cosmic-night', name: 'Cosmic Night', url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=2500&auto=format&fit=crop' },
+  { id: 'cozy-library', name: 'Cozy Library', url: 'https://images.unsplash.com/photo-1507842217153-e3c035efca1c?q=80&w=2500&auto=format&fit=crop' },
+  { id: 'sunset-dream', name: 'Sunset Dream', url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2500&auto=format&fit=crop' }
+];
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -76,6 +87,21 @@ function App() {
     const d = String(currentDate.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }, [currentDate]);
+
+  // Theme State
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('relive_theme') || 'default';
+  });
+
+  // Apply Theme to Body (or wrapper)
+  useEffect(() => {
+    const theme = THEMES.find(t => t.id === currentTheme) || THEMES[0];
+    localStorage.setItem('relive_theme', currentTheme);
+    document.body.style.backgroundImage = `
+      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0.6) 90%),
+      url("${theme.url}")
+    `;
+  }, [currentTheme]);
 
   // Auth Listener (Firebase)
   useEffect(() => {
@@ -394,6 +420,8 @@ function App() {
           <span style={{ fontSize: '0.8rem' }}>{user.displayName}</span>
           <button onClick={logout} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}>Logout</button>
         </div>
+
+
       </div>
 
       <div className={`book ${isOpen ? 'open' : 'closed'}`} onClick={() => !isOpen && setIsOpen(true)}>
@@ -409,6 +437,14 @@ function App() {
           <>
             {/* Left Page: Previous Context */}
             <div className="layer page left">
+              <div className="nav-arrow left" onClick={(e) => {
+                e.stopPropagation();
+                const d = new Date(currentDate);
+                d.setDate(d.getDate() - 1);
+                toDate(d);
+              }} title="Previous Day">
+                &#10094;
+              </div>
               {prevDateData ? (
                 <div className="prev-entry-content">
                   <div className="prev-date">{prevDateData.dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
@@ -423,6 +459,14 @@ function App() {
 
             {/* Right Page: Active Editor & Views */}
             <div className={`layer page right ${flipping ? 'flipping' : ''}`}>
+              <div className="nav-arrow right" onClick={(e) => {
+                e.stopPropagation();
+                const d = new Date(currentDate);
+                d.setDate(d.getDate() + 1);
+                toDate(d);
+              }} title="Next Day">
+                &#10095;
+              </div>
 
               {/* Divider Tabs */}
               <div className="book-tabs">
@@ -430,7 +474,10 @@ function App() {
                 <div className={`book-tab ${view === 'timeline' ? 'active' : ''}`} onClick={() => toView('timeline')} title="History">H</div>
                 <div className={`book-tab ${view === 'search' ? 'active' : ''}`} onClick={() => toView('search')} title="Search">Q</div>
                 <div className={`book-tab ${view === 'favorites' ? 'active' : ''}`} onClick={() => toView('favorites')} title="Favorites">★</div>
+                <div className={`book-tab ${view === 'themes' ? 'active' : ''}`} onClick={() => toView('themes')} title="Ambiance">🎨</div>
                 {view !== 'editor' && <div className="book-tab" onClick={() => toView('editor')} title="Write">✎</div>}
+
+                {/* Theme Selectors Removed */}
               </div>
 
               {/* Bookmark (Save) */}
@@ -453,6 +500,7 @@ function App() {
                   {view === 'favorites' && <MemoizedTimeline onEntrySelect={(d) => {
                     const [y, m, day] = d.split('-').map(Number); toDate(new Date(y, m - 1, day));
                   }} onlyFavorites={true} />}
+                  {view === 'themes' && <Themes themes={THEMES} currentTheme={currentTheme} onSelect={setCurrentTheme} onClose={() => toView('editor')} />}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
