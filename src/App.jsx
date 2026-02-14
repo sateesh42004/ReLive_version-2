@@ -4,6 +4,9 @@ import Timeline from './Timeline';
 import Search from './Search';
 import { jsPDF } from 'jspdf';
 import './App.css';
+import './DeleteStyles.css';
+import './MediaStyles.css';
+import './HighVisibility.css';
 import Themes from './Themes';
 import { auth, signInWithGoogle, logout } from './firebase/auth'; // Firebase Auth restored
 import { onAuthStateChanged } from 'firebase/auth';
@@ -29,12 +32,82 @@ const MemoizedSearch = memo(Search);
 
 // Theme Definitions
 const THEMES = [
-  { id: 'default', name: 'Classic Wooden', url: '/bg_final.png' },
-  { id: 'dark-wood', name: 'Dark Wood', url: 'https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?q=80&w=2574&auto=format&fit=crop' },
-  { id: 'misty-forest', name: 'Misty Forest', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2500&auto=format&fit=crop' },
-  { id: 'cosmic-night', name: 'Cosmic Night', url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=2500&auto=format&fit=crop' },
-  { id: 'cozy-library', name: 'Cozy Library', url: 'https://images.unsplash.com/photo-1507842217153-e3c035efca1c?q=80&w=2500&auto=format&fit=crop' },
-  { id: 'sunset-dream', name: 'Sunset Dream', url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2500&auto=format&fit=crop' }
+  {
+    id: 'default',
+    name: 'Classic Wooden',
+    url: '/bg_final.png',
+    style: {
+      '--cover-color': '#3A2A1F',
+      '--paper-color': '#F2E6D3',
+      '--paper-shadow-color': '#e3d5c0',
+      '--ink-color': '#2C1E15',
+      '--line-color': 'rgba(44, 30, 21, 0.08)',
+      '--gold-accent': '#C9A55C',
+      '--subtitle-color': '#8f7e6b',
+      '--ribbon-color': '#4a0404',
+      '--font-primary': "'Cormorant Garamond', serif",
+      '--font-display': "'Cinzel', serif",
+      '--book-radius': '2px 4px 4px 2px',
+      '--cover-texture': `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E"), linear-gradient(to bottom right, #3A2A1F, #2a1f16)`
+    }
+  },
+  {
+    id: 'misty-forest',
+    name: 'Misty Forest',
+    url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2500&auto=format&fit=crop',
+    style: {
+      '--cover-color': '#2E3F32',
+      '--paper-color': '#E8E5D6',
+      '--paper-shadow-color': '#dcd8c5',
+      '--ink-color': '#2E2A24',
+      '--line-color': 'rgba(46, 42, 36, 0.08)',
+      '--gold-accent': '#D8C3A5',
+      '--subtitle-color': '#9e8c75',
+      '--ribbon-color': '#5c6b50',
+      '--font-primary': "'Crimson Pro', serif",
+      '--font-display': "'Cormorant Garamond', serif",
+      '--book-radius': '2px 8px 8px 2px',
+      '--cover-texture': `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E"), linear-gradient(135deg, #2E3F32 0%, #1a261d 100%)`
+    }
+  },
+  {
+    id: 'cosmic-night',
+    name: 'Cosmic Night',
+    url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=2500&auto=format&fit=crop',
+    style: {
+      '--cover-color': '#1B2233',
+      '--paper-color': '#F0E8FF',
+      '--paper-shadow-color': '#e0d8f0',
+      '--ink-color': '#0f0f3e',
+      '--line-color': 'rgba(100, 100, 255, 0.05)',
+      '--gold-accent': '#E4E9F2',
+      '--subtitle-color': '#C9D1E3',
+      '--ribbon-color': '#483d8b',
+      '--font-primary': "'EB Garamond', serif",
+      '--font-display': "'Cinzel Decorative', serif",
+      '--book-radius': '0px 0px 0px 0px',
+      '--cover-texture': `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E"), linear-gradient(to bottom right, #1B2233, #0d111a)`
+    }
+  },
+  {
+    id: 'sunset-dream',
+    name: 'Sunset Valley',
+    url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2500&auto=format&fit=crop',
+    style: {
+      '--cover-color': '#8B4513', /* Rich Burnt Sienna Leather */
+      '--paper-color': '#fff5e6', /* Warm Light Sunset Glow */
+      '--paper-shadow-color': '#ffe0b2',
+      '--ink-color': '#3e2723', /* Dark Brown Ink */
+      '--line-color': 'rgba(139, 69, 19, 0.15)',
+      '--gold-accent': '#ffecb3', /* Soft Gold */
+      '--subtitle-color': '#d7ccc8',
+      '--ribbon-color': '#d84315', /* Deep Sunset Orange */
+      '--font-primary': "'Lora', serif", /* Elegant Serif */
+      '--font-display': "'Playfair Display', serif",
+      '--book-radius': '4px 16px 16px 4px',
+      '--cover-texture': `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.25'/%3E%3C/svg%3E"), linear-gradient(to bottom, #8B4513, #5D4037)`
+    }
+  }
 ];
 
 function App() {
@@ -75,6 +148,19 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const bookRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (isOpen && bookRef.current && !bookRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
   const blobMapRef = useRef({}); // New: Store actual Blobs for reliability
 
   const fileInputRef = useRef(null);
@@ -97,10 +183,18 @@ function App() {
   useEffect(() => {
     const theme = THEMES.find(t => t.id === currentTheme) || THEMES[0];
     localStorage.setItem('relive_theme', currentTheme);
+    // Apply Theme to Body and Root
     document.body.style.backgroundImage = `
       radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0.6) 90%),
       url("${theme.url}")
     `;
+
+    // Apply dynamic styles
+    if (theme.style) {
+      Object.entries(theme.style).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value);
+      });
+    }
   }, [currentTheme]);
 
   // Auth Listener (Firebase)
@@ -112,32 +206,11 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Previous Day Logic (For Left Page Context)
+  // Previous Day Logic Removed
   useEffect(() => {
-    if (!user) return; // Wait for auth
-
-    const fetchPrev = async () => {
-      const d = new Date(currentDate);
-      d.setDate(d.getDate() - 1);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const key = `${y}-${m}-${day}`;
-
-      try {
-        const data = await getEntry(key);
-        if (data) {
-          setPrevDateData({ text: data.text || '', dateObj: d });
-        } else {
-          setPrevDateData(null);
-        }
-      } catch (e) {
-        console.error("Error fetching prev date:", e);
-        setPrevDateData(null);
-      }
-    };
-    fetchPrev();
-  }, [dateKey, user]);
+    // Keep this empty useEffect or remove it entirely in cleanup, 
+    // but for now we just remove the logic that fetches prev date.
+  }, []);
 
   // Load Current Entry from Firebase
   useEffect(() => {
@@ -414,29 +487,34 @@ function App() {
   return (
     <div className="scene">
       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 100 }}>
-        {/* User Profile / Logout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.8)', padding: '5px 10px', borderRadius: 20 }}>
-          {user.photoURL && <img src={user.photoURL} alt="Profile" style={{ width: 24, height: 24, borderRadius: '50%' }} />}
-          <span style={{ fontSize: '0.8rem' }}>{user.displayName}</span>
-          <button onClick={logout} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}>Logout</button>
-        </div>
-
-
+        {/* User Profile moved to Right Page */}
       </div>
 
-      <div className={`book ${isOpen ? 'open' : 'closed'}`} onClick={() => !isOpen && setIsOpen(true)}>
+      <div ref={bookRef} className={`book ${isOpen ? 'open' : 'closed'}`} onClick={() => !isOpen && setIsOpen(true)}>
 
         {/* Cover - Always Visible */}
         <div className="layer cover">
           <div className="cover-title">ReLive</div>
           <div className="cover-subtitle">JOURNAL</div>
+
+          {/* Owner Profile on Cover */}
+          <div className="cover-owner-plate">
+            <div className="cover-profile-badge">
+              {user.photoURL && <img src={user.photoURL} alt="Owner" className="cover-profile-img" />}
+              <span className="cover-profile-name">{user.displayName}</span>
+              <div className="cover-badge-divider"></div>
+              <button onClick={(e) => { e.stopPropagation(); logout(); }} className="cover-logout-btn">
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Inner Pages - Render ONLY when open */}
         {isOpen && (
           <>
-            {/* Left Page: Previous Context */}
-            <div className="layer page left">
+            {/* Left Page: Media Memories & Audio */}
+            <div className="layer page left" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
               <div className="nav-arrow left" onClick={(e) => {
                 e.stopPropagation();
                 const d = new Date(currentDate);
@@ -445,20 +523,85 @@ function App() {
               }} title="Previous Day">
                 &#10094;
               </div>
-              {prevDateData ? (
-                <div className="prev-entry-content">
-                  <div className="prev-date">{prevDateData.dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
-                  <div className="prev-text">{prevDateData.text.substring(0, 300)}...</div>
+
+              {/* TOP HALF: IMAGES */}
+              <div className="split-top">
+                <div style={{ padding: '20px 30px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="dd-day" style={{ fontSize: '1.2rem' }}>Visual Memories</div>
+                  <button onClick={() => fileInputRef.current?.click()} style={{ border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.6, fontSize: '1rem', fontWeight: 'bold' }} title="Add Photo">+ Add Photo</button>
                 </div>
-              ) : (
-                <div className="prev-entry-content" style={{ opacity: 0.3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  (No previous entry)
+
+                {images.length > 0 ? (
+                  <div className="image-gallery" style={{ border: 'none', background: 'transparent' }}>
+                    {images.map((src, i) => (
+                      <div key={i} className="polaroid">
+                        <img src={src} alt="Memory" onClick={() => {/* Optional: View Fullscreen */ }} />
+                        <div
+                          className="polaroid-delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm("Are you sure you want to delete this photo?")) {
+                              setImages(p => p.filter((_, idx) => idx !== i));
+                            }
+                          }}
+                          title="Delete Photo"
+                        >
+                          ×
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state-media" onClick={() => fileInputRef.current?.click()}>
+                    <span style={{ fontSize: '2rem', marginBottom: 10 }}>📷</span>
+                    <span>Add a photo to this memory</span>
+                  </div>
+                )}
+              </div>
+
+              {/* BOTTOM HALF: AUDIO */}
+              <div className="split-bottom">
+                <div style={{ padding: '15px 30px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div className="audio-header" style={{ marginBottom: 0 }}>Audio Notes</div>
+                    <button onClick={isRecording ? stopRecording : startRecording} style={{ border: 'none', background: 'transparent', cursor: 'pointer', opacity: isRecording ? 1 : 0.6, color: isRecording ? 'red' : 'inherit', fontWeight: 'bold' }} title="Record Audio">
+                      {isRecording ? '● Stop' : '+ Record'}
+                    </button>
+                  </div>
+                  {audioNotes.length > 0 ? (
+                    <div className="audio-list-container">
+                      {audioNotes.map((url, i) => (
+                        <div key={url} className="audio-item">
+                          <div style={{ marginRight: 8, fontSize: '1.2rem' }}>🔊</div>
+                          <audio controls src={url} />
+                          <span
+                            onClick={() => {
+                              if (window.confirm("Delete audio note?")) {
+                                setAudioNotes(p => p.filter((_, x) => x !== i));
+                              }
+                            }}
+                            className="audio-delete"
+                            title="Delete Audio"
+                          >
+                            🗑️
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: 20, textAlign: 'center', opacity: 0.6, fontStyle: 'italic', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }} onClick={isRecording ? stopRecording : startRecording}>
+                      <span style={{ fontSize: '1.5rem' }}>{isRecording ? '🔴' : '🎙️'}</span>
+                      <span>{isRecording ? 'Click to Stop Recording' : 'Record an Audio Note'}</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
             </div>
 
             {/* Right Page: Active Editor & Views */}
             <div className={`layer page right ${flipping ? 'flipping' : ''}`}>
+              {/* Profile Header - Removed, moved to Cover */}
               <div className="nav-arrow right" onClick={(e) => {
                 e.stopPropagation();
                 const d = new Date(currentDate);
@@ -483,6 +626,7 @@ function App() {
               {/* Bookmark (Save) */}
               {view === 'editor' && (
                 <div className={`ribbon-bookmark ${!hasUnsavedChanges() ? 'saved' : ''}`} onClick={handleSave} title={hasUnsavedChanges() ? "Save Changes" : "Saved"}>
+                  {/* Star Toggle on Ribbon or separate? Let's put Star in Header, keep Ribbon for Save */}
                   <span className="ribbon-label">{isSaving ? 'SAVING...' : (hasUnsavedChanges() ? 'SAVE' : 'SAVED')}</span>
                 </div>
               )}
@@ -513,8 +657,23 @@ function App() {
                         </span>
                       ))}
                     </div>
-                    <div className="date-display-main">
-                      <span className="dd-day">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                    <div className="date-display-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div
+                          onClick={() => setIsFavorite(!isFavorite)}
+                          title={isFavorite ? "Unmark as Favorite" : "Mark as Favorite"}
+                          style={{
+                            fontSize: '1.5rem',
+                            cursor: 'pointer',
+                            color: isFavorite ? '#f1c40f' : '#ccc',
+                            transition: 'color 0.2s',
+                            paddingBottom: 5
+                          }}
+                        >
+                          {isFavorite ? '★' : '☆'}
+                        </div>
+                        <span className="dd-day">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                      </div>
                       <span className="dd-date">{currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                   </div>
@@ -545,16 +704,12 @@ function App() {
                       </div>
                     )}
 
-                    {/* Photo Button */}
+                    {/* Photo Button - REMOVED (Moved to Left Page) */}
                     <input type="file" ref={fileInputRef} hidden onChange={(e) => Array.from(e.target.files).forEach(f => {
                       if (f.type.startsWith('image/')) { const r = new FileReader(); r.onload = x => setImages(p => [...p, x.target.result]); r.readAsDataURL(f); }
                     })} />
-                    <div style={{ position: 'absolute', bottom: 40, right: 10, opacity: 0.6, cursor: 'pointer', fontSize: '1.5rem', zIndex: 50 }} onClick={() => fileInputRef.current?.click()} title="Add Photo">📷</div>
 
-                    {/* Polaroids */}
-                    {images.map((src, i) => (
-                      <img key={i} src={src} className="polaroid" onClick={() => setImages(p => p.filter((_, idx) => idx !== i))} />
-                    ))}
+
 
                     {/* Tags */}
                     <div className="tags-row">
@@ -573,30 +728,14 @@ function App() {
                       )}
 
                       <div style={{ marginLeft: 'auto', display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        {/* Audio Button */}
-                        <div
-                          className={`record-btn-ink ${isRecording ? 'recording' : ''}`}
-                          onClick={isRecording ? stopRecording : startRecording}
-                          title={isRecording ? "Stop Recording" : "Record Audio Note"}
-                        >
-                          {isRecording ? '● Rec...' : '🎙 Audio Note'}
-                        </div>
+                        {/* Audio Button - REMOVED (Moved to Left Page) */}
+
                         {/* AI Button */}
                         <span style={{ cursor: 'pointer', opacity: 0.6 }} onClick={handleSummarize} title="AI Reflection">✧ Reflection</span>
                       </div>
                     </div>
 
-                    {/* Audio Player List */}
-                    {audioNotes.length > 0 && (
-                      <div style={{ marginTop: 15, padding: 10, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                        {audioNotes.map((url, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-                            <audio controls src={url} style={{ height: 30, opacity: 0.8 }} />
-                            <span onClick={() => setAudioNotes(p => p.filter((_, x) => x !== i))} style={{ cursor: 'pointer', color: '#999' }}>x</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+
                   </div>
                 </div>
               )}

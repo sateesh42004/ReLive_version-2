@@ -1,5 +1,5 @@
 /* Environment & Scene */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Playfair+Display+SC:wght@400;700&display=swap');
 
 :root {
   --book-width: 500px;
@@ -23,6 +23,17 @@
   --line-height-px: 32px;
   /* Fixed grid height */
   --font-size-base: 18px;
+
+  /* UI Shape & Texture Defaults */
+  --book-radius: 2px 6px 6px 2px;
+  --cover-texture: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 20%), radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.2) 0%, transparent 20%);
+  --paper-pattern: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+
+  /* Additional Theme Variables */
+  --gold-accent: #c5a065;
+  --subtitle-color: #8c7358;
+  --paper-shadow-color: #f2efe6;
+  --ribbon-color: #a31d1d;
 }
 
 body {
@@ -87,16 +98,14 @@ body {
   height: 100%;
   transform-origin: left center;
   backface-visibility: hidden;
-  border-radius: 2px 6px 6px 2px;
+  border-radius: var(--book-radius);
 }
 
 /* Cover - Premium Leather */
 .cover {
   background: var(--cover-color);
   /* Organic Leather Texture */
-  background-image:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 20%),
-    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.2) 0%, transparent 20%);
+  background-image: var(--cover-texture);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -114,14 +123,24 @@ body {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 3.8rem;
-  color: #c5a065;
-  /* Gold Leaf */
+  color: var(--gold-accent);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(197, 160, 101, 0.3);
   padding: 20px 40px;
   background: rgba(0, 0, 0, 0.2);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  cursor: default;
+}
+
+.cover-title:hover {
+  color: #fff;
+  text-shadow:
+    0 0 10px #ffd700,
+    0 0 20px #ffd700,
+    0 0 40px #ffd700,
+    0 0 80px #ffae00;
 }
 
 .cover-subtitle {
@@ -129,7 +148,8 @@ body {
   font-family: var(--font-display);
   font-size: 0.85rem;
   letter-spacing: 0.35em;
-  color: #8c7358;
+  letter-spacing: 0.35em;
+  color: var(--subtitle-color);
   text-transform: uppercase;
 }
 
@@ -137,7 +157,7 @@ body {
 .page {
   background-color: var(--paper-color);
   /* Archive Paper Grain */
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: var(--paper-pattern);
   padding: 50px 45px;
   box-sizing: border-box;
 }
@@ -146,7 +166,7 @@ body {
 .page.left {
   transform: rotateY(0deg) translateX(-100%);
   transform-origin: right center;
-  background-color: #f2efe6;
+  background-color: var(--paper-shadow-color);
   /* Slightly aged */
   z-index: 10;
   border-radius: 6px 2px 2px 6px;
@@ -372,7 +392,7 @@ body {
   right: 50px;
   width: 30px;
   height: 85px;
-  background: #a31d1d;
+  background: var(--ribbon-color);
   /* Classic Bookmark Red */
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
   cursor: pointer;
@@ -575,4 +595,107 @@ body {
 
 .nav-arrow.right {
   right: 5px;
+}
+
+/* Cover Owner Plate - Beautiful & Integrated */
+.cover-owner-plate {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 60;
+  width: auto;
+}
+
+.cover-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 24px;
+  border: 1px solid rgba(197, 160, 101, 0.4);
+  /* Gold border */
+  border-radius: 50px;
+  /* Pill shape */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.cover-profile-badge:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(197, 160, 101, 0.8);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.cover-profile-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-accent);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  object-fit: cover;
+}
+
+.cover-profile-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #f0e6d2;
+  /* Parchment white */
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  /* Prevent wrapping */
+}
+
+.cover-badge-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(197, 160, 101, 0.5);
+  margin: 0 5px;
+}
+
+.cover-logout-btn {
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: rgba(197, 160, 101, 0.6);
+  /* Faded gold */
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  transition: all 0.3s;
+  padding: 4px 8px;
+  margin: 0;
+  /* Align in row */
+  position: relative;
+}
+
+.cover-logout-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: #d32f2f;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.cover-logout-btn:hover {
+  color: #e57373;
+  /* Soft red */
+}
+
+.cover-logout-btn:hover::after {
+  width: 80%;
+  left: 10%;
 }

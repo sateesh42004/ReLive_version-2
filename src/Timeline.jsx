@@ -27,6 +27,8 @@ function Timeline({ onEntrySelect, onlyFavorites = false }) {
                     const images = entry.images || [];
                     const audioNotes = entry.audioNotes || [];
 
+                    const updatedAt = entry.updatedAt || null;
+
                     if (onlyFavorites && !isFavorite) return;
 
                     const hasContent = (text && text.trim().length > 0) ||
@@ -40,7 +42,7 @@ function Timeline({ onEntrySelect, onlyFavorites = false }) {
                         loadedEntries.push({
                             date: key,
                             text, tags, images, audioNotes,
-                            isFavorite, mood,
+                            isFavorite, mood, updatedAt,
                             dateObj: new Date(y, m - 1, d)
                         });
                     }
@@ -56,18 +58,9 @@ function Timeline({ onEntrySelect, onlyFavorites = false }) {
         return new Date(dateStr).toLocaleDateString('en-US', options);
     };
 
-    const getPreview = (entry) => {
-        if (entry.text && entry.text.trim().length > 0) {
-            const firstLine = entry.text.split('\n')[0];
-            return firstLine.length > 80 ? firstLine.substring(0, 80) + '...' : firstLine;
-        }
-        if (entry.images && entry.images.length > 0) return '📷 [Image Entry]';
-        if (entry.audioNotes && entry.audioNotes.length > 0) return '🎙 [Audio Entry]';
-        if (entry.mood) {
-            const m = MOODS.find(x => x.val === entry.mood);
-            return m ? `Mood: ${m.icon}` : 'Mood Entry';
-        }
-        return '(No content)';
+    const formatTime = (isoString) => {
+        if (!isoString) return '';
+        return new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     };
 
     return (
@@ -79,21 +72,14 @@ function Timeline({ onEntrySelect, onlyFavorites = false }) {
                     {entries.map(entry => (
                         <li key={entry.date} className="timeline-item" onClick={() => onEntrySelect(entry.date)}>
                             <div className="timeline-date">
-                                {formatDate(entry.date)}
-                                {entry.mood && (
-                                    <span className="timeline-mood" title="Mood">
-                                        {MOODS.find(m => m.val === entry.mood)?.icon}
+                                <span style={{ fontWeight: 600 }}>{formatDate(entry.date)}</span>
+                                {entry.updatedAt && (
+                                    <span style={{ fontSize: '0.9em', opacity: 0.7, marginLeft: '10px' }}>
+                                        {formatTime(entry.updatedAt)}
                                     </span>
                                 )}
-                                {entry.tags && entry.tags.length > 0 && (
-                                    <span className="timeline-tags">
-                                        {entry.tags.map(tag => (
-                                            <span key={tag} className="timeline-tag">#{tag}</span>
-                                        ))}
-                                    </span>
-                                )}
+                                {entry.isFavorite && <span style={{ marginLeft: '10px', color: '#f1c40f' }}>★</span>}
                             </div>
-                            <div className="timeline-preview">{getPreview(entry)}</div>
                         </li>
                     ))}
                 </ul>

@@ -1,97 +1,109 @@
 .timeline-container {
     width: 100%;
-    max-width: 720px;
     margin: 0 auto;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .timeline-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
 }
 
 .timeline-item {
-    padding: 1.25rem 0;
-    border-bottom: 1px solid #f8f8f8;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
     cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.timeline-item:hover {
-    opacity: 0.6;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    border-left: 4px solid transparent;
 }
 
 .timeline-item:last-child {
     border-bottom: none;
 }
 
+/* Alternating Colors for Readability */
+.timeline-item:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.timeline-item:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Hover Effect */
+.timeline-item:hover {
+    background-color: #e3f2fd;
+    padding-left: 24px;
+    border-left-color: #2196f3;
+}
+
+/* Text Styling */
 .timeline-date {
-    font-size: 0.7rem;
-    color: #aaa;
+    font-size: 1.05rem;
+    color: #222 !important;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.4rem;
-    font-weight: 500;
+    margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-.timeline-preview {
-    font-size: 1rem;
-    color: #444;
-    line-height: 1.6;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.timeline-mood {
-    font-size: 0.85rem;
-    opacity: 0.6;
-}
-
-.timeline-tags {
-    display: flex;
-    gap: 4px;
-}
-
-.timeline-tag {
-    font-size: 0.65rem;
-    color: #bbb;
-    background: #fafafa;
-    padding: 0 4px;
-    border-radius: 2px;
+    width: 100%;
 }
 
 .timeline-empty {
     text-align: center;
-    color: #ccc;
+    padding: 40px;
+    color: #666;
     font-style: italic;
-    padding: 4rem 0;
-    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
+    .timeline-list {
+        border-color: #444;
+        background: #222;
+    }
+
     .timeline-item {
-        border-bottom-color: #222;
+        border-bottom-color: #333;
+    }
+
+    .timeline-item:nth-child(odd) {
+        background-color: #1e1e1e;
+    }
+
+    .timeline-item:nth-child(even) {
+        background-color: #252525;
+    }
+
+    .timeline-item:hover {
+        background-color: #333;
+        border-left-color: #90caf9;
     }
 
     .timeline-date {
-        color: #555;
-    }
-
-    .timeline-preview {
-        color: #aaa;
-    }
-
-    .timeline-tag {
-        background: #1a1a1a;
-        color: #555;
-    }
-
-    .timeline-empty {
-        color: #444;
+        color: #ddd !important;
     }
 }

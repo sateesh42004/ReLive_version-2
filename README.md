@@ -1,70 +1,123 @@
-# ReLive (v1.0.0)
+# ReLive (v3.0) - Digital Journaling Reimagined
 
-ReLive is a minimalist, local-only diary application designed for focused writing and memory preservation. It prioritizes the writing experience by removing distractions and ensuring high-performance responsiveness, even as the diary grows over time.
+ReLive is a skeumorphic, immersive digital diary designed to bring the tactile feeling of a physical journal to the modern web. It combines nostalgic aesthetics with powerful cloud synchronization, ensuring your memories are both beautiful to look at and safely preserved forever.
 
-## Design Philosophy
+![ReLive Preview](./public/bg_final.png)
 
-- **Writing First**: The editor is the dominant UI element. Metadata and navigation are secondary, using muted colors and typography to minimize visual noise.
-- **Intentional Persistence**: ReLive uses a manual save model. Writing is treated as a volatile session until the user intentionally commits it to the permanent history.
-- **Privacy by Architecture**: All data is stored locally in the browser’s `localStorage`. There are no backend dependencies, accounts, or external tracking.
+## 🌟 Key Features
 
-## Core Features
+### 📖 Immersive Book Interface
+ReLive offers a unique "BookOS" experience that stands out from sterile, flat apps:
+- **Realistic 3D Page Flipping**: Navigate days by physically turning pages.
+- **Skeuomorphic Design**: Rich textures, leather covers, paper grains, and bookmark ribbons.
+- **Responsive Animations**: Smooth transitions and micro-interactions that feel alive.
 
-- **Focused Editor**: A clean, responsive writing area with support for mood tracking and tagging.
-- **Media Attachments**: Support for image uploads and audio note recordings within diary entries.
-- **History Navigation**:
-  - **Calendar**: Visual overview of writing frequency.
-  - **Timeline**: Chronological feed of all past memories.
-  - **Search**: Instant, read-only search across all saved text, tags, and dates.
-- **AI Reflection**: On-demand summarization of entries to aid in personal reflection (transient, non-mutating).
-- **Writing Prompts**: Contextual, non-intrusive prompts for empty entries (can be permanently disabled).
-- **Multi-Format Export**: Export options for Plain Text (.txt), Markdown (.md), and PDF (.pdf).
-- **Keyboard UX**: Support for `Ctrl+F` (Search), `Ctrl+Arrows` (Date Navigation), and `ESC` (Return to Editor).
+### 🎨 Dynamic Themes (Ambiance)
+Customize your writing environment to match your mood. The entire application—including fonts, colors, and background textures—adapts instantly.
+- **Classic Wooden**: Traditional leather diary on a mahogany desk.
+- **Obsidian Desk**: sleek, dark mode for night-time contemplation.
+- **Misty Forest**: Calming greens and nature-inspired textures.
+- **Cosmic Night**: Deep blues and starlight for dreamy reflection.
+- **Cozy Library**: Warm reds and vintage paper feels.
+- **Sunset Dream**: Soft, warm pastels for energetic days.
 
-## Architecture Summary
+### ✍️ Rich Journaling Experience
+- **Focus-First Editor**: A clean, distraction-free writing surface on realistic lined paper.
+- **Multimedia Support**:
+  - 📸 **Polaroid Photos**: Upload images that render as vintage polaroid prints on your page.
+  - 🎙️ **Voice Notes**: Record, save, and play back audio memories natively within your entry.
+- **Mood Tracking**: Log your daily emotional state with expressive icons.
+- **Tags & Metadata**: Organize your thoughts with flexible hashtags and "pinned" favorites.
+- **AI Reflection**: (Experimental) On-demand summarization to help you find clarity in your ramblings.
 
-The application is built using **React** and **Vite**.
+### 🧭 Smart Navigation & Organization
+- **Calendar View**: A visual heat-map of your writing history.
+- **Timeline**: A vertically scrolling feed of your life's story.
+- **Universal Search**: Instantly find specific memories, tags, or dates.
+- **Favorites Collection**: Quick access to your most cherished moments.
+- **Keyboard Shortcuts**:
+  - `Ctrl + Arrow Left/Right`: Navigate days.
+  - `Ctrl + F`: Open Search.
+  - `Esc`: Close open views or return to the Editor.
 
-- **State Management**:
-  - **Volatile State**: Current session data (text, unsaved edits) is managed by React state in the root `App` component.
-  - **Persistent State**: Data is keyed by date (`YYYY-MM-DD`) and stored as JSON objects in `localStorage`.
-- **Performance Optimization**: Heavier secondary views (`Calendar`, `Timeline`, `Search`) are memoized using `React.memo`. This ensures that high-frequency keystrokes in the editor do not trigger redundant re-renders of the entire application.
-- **Data Serialization**: Metadata (mood, tags) and media (Base64 strings) are encapsulated within a single entry object to maintain technical simplicity and atomic saves.
+---
 
-## Data Safety Guardrails
+## 🛠 Technical Architecture
 
-ReLive implements strict protection against accidental data loss:
-- **Dirty State Detection**: The application compares the current in-memory session with the last saved version.
-- **Navigation Guards**: Any attempt to change dates or views while there are unsaved changes triggers a confirmation dialog.
-- **Export Isolation**: Exports are read-only operations performed on saved data; they never modify the current editor buffer or trigger a save.
+ReLive v3 utilizes a modern **Hybrid Cloud** architecture to optimize for performance (local-first feel) and scalability (cloud reliability).
 
-## How to Run Locally
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Frontend** | React + Vite | High-performance SPA with memoized components to prevent re-renders. |
+| **Styling** | CSS Variables | Advanced custom theming engine without heavy CSS frameworks. |
+| **Authentication** | Firebase Auth | Secure, one-click Google Sign-In integration. |
+| **Database** | Firebase Firestore | Real-time NoSQL database for storing journal text, tags, and metadata. |
+| **Asset Storage** | Supabase Storage | High-capacity object storage handling audio blobs and image uploads. |
+| **Synchronization** | Custom Sync Engine | "Hybrid" logic (`sync.js`) that orchestrates uploads to Supabase while saving references to Firebase. |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
-- [npm](https://www.npmjs.com/)
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- A **Firebase Project** with Authentication and Firestore enabled.
+- A **Supabase Project** with a storage bucket named `uploads` (set to public for read access).
 
 ### Installation
-1. Clone or download the repository.
-2. Navigate to the project directory:
+
+1. **Clone the repository**
    ```bash
+   git clone https://github.com/your-username/relive-v3.git
    cd relive
    ```
-3. Install dependencies:
+
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-### Development
-Start the local development server:
-```bash
-npm run dev
-```
-The application will be available at `http://localhost:5173`.
+3. **Configure Environment**
+   Create a `.env` file in the root directory (refer to `.env.example` if available) and add your keys:
+   ```env
+   # Firebase Config
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   ...
 
-### Production Build
-Generate a production-ready bundle:
+   # Supabase Config
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Run Locally**
+   Start the development server:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:5173` in your browser.
+
+### Building for Production
+To create a strictly optimized production build:
 ```bash
 npm run build
 ```
-The static assets will be located in the `dist/` directory.
+The output will be in the `dist/` folder, ready for deployment on Vercel or Firebase Hosting.
+
+---
+
+## 🔒 Privacy & Security
+
+- **User Ownership**: Data is keyed by your unique User ID (UID). You only see what you write.
+- **Row Level Security**: Database and Storage rules utilize strict RLS policies to ensure no cross-user data leakage.
+- **Encryption**: All data in transit is encrypted via HTTPS/TLS.
+
+## 🤝 Contributing
+
+We welcome contributions! Whether it's a new theme, a bug fix, or a feature request.
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+---
+
+*ReLive - Because some memories deserve more than just a text file.*
