@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
+import { createWorker } from 'tesseract.js';
 import Calendar from './Calendar';
 import Timeline from './Timeline';
 import Search from './Search';
@@ -110,6 +111,64 @@ const THEMES = [
   }
 ];
 
+// Image Pre-processing for better OCR
+const preprocessImage = (file) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Scale up for better OCR resolution (target ~2000px width)
+        let width = img.width;
+        let height = img.height;
+        const minWidth = 2000;
+        if (width < minWidth) {
+          const scale = minWidth / width;
+          width = minWidth;
+          height = height * scale;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // White background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const imgData = ctx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+
+        // Grayscale & High Contrast Binarization
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          // Luminosity grayscale
+          let gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+          // Thresholding (Simple Binarization) to clean noice
+          // If it's light, make it white. If it's dark, make it black.
+          // Adjust threshold as needed, 160 is a safe bet for paper.
+          gray = (gray > 160) ? 255 : 0;
+
+          data[i] = data[i + 1] = data[i + 2] = gray;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('editor');
@@ -134,6 +193,7 @@ function App() {
   const [summary, setSummary] = useState(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
 
   // Book Interface State
   const [isOpen, setIsOpen] = useState(false);
@@ -164,6 +224,7 @@ function App() {
   const blobMapRef = useRef({}); // New: Store actual Blobs for reliability
 
   const fileInputRef = useRef(null);
+  const ocrInputRef = useRef(null);
   const editorRef = useRef(null);
 
   // Derived Date Key: YYYY-MM-DD
@@ -383,6 +444,61 @@ function App() {
   // Tag Helpers
   const addTag = () => { const t = tagInput.trim(); if (t && !tags.includes(t)) { setTags([...tags, t]); setTagInput(''); } };
   const removeTag = (t) => setTags(tags.filter(x => x !== t));
+
+  // OCR Logic
+  const handleOCR = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setIsExtracting(true);
+    try {
+      // Create worker with logging
+      const worker = await createWorker('eng', 1, {
+        logger: m => console.log(m),
+      });
+
+      // Set parameters better for document text
+      await worker.setParameters({
+        tessedit_pageseg_mode: '1', // Automatic page segmentation with OSD
+        preserve_interword_spaces: '1',
+      });
+
+      let allText = '';
+      let processedCount = 0;
+
+      for (const file of files) {
+        // Pre-process image for better contrast/resolution
+        const processedImageSrc = await preprocessImage(file);
+
+        const { data: { text } } = await worker.recognize(processedImageSrc);
+
+        if (text && text.trim()) {
+          // Clean up common OCR artifacts
+          const cleanText = text
+            .replace(/([^\n])\n([^\n])/g, '$1 $2') // Join broken lines (common in OCR)
+            .replace(/\|/g, 'I') // Fix common pipe vs I confusion
+            .trim();
+
+          allText += (allText ? '\n\n---\n\n' : '') + cleanText;
+        }
+        processedCount++;
+      }
+
+      await worker.terminate();
+
+      if (allText) {
+        setText((prev) => (prev ? prev + '\n\n' : '') + allText);
+      } else {
+        alert("Could not detect clear text. Try ensuring the page is flat and well-lit.");
+      }
+    } catch (error) {
+      console.error("OCR Error:", error);
+      alert("Failed to extract text. Please try a clearer image.");
+    } finally {
+      setIsExtracting(false);
+      if (ocrInputRef.current) ocrInputRef.current.value = '';
+    }
+  };
 
   // Audio Recording Logic
   const startRecording = async () => {
@@ -732,6 +848,23 @@ function App() {
 
                         {/* AI Button */}
                         <span style={{ cursor: 'pointer', opacity: 0.6 }} onClick={handleSummarize} title="AI Reflection">✧ Reflection</span>
+
+                        {/* OCR Button */}
+                        <span
+                          style={{ cursor: 'pointer', opacity: isExtracting ? 0.4 : 0.6, pointerEvents: isExtracting ? 'none' : 'auto' }}
+                          onClick={() => ocrInputRef.current?.click()}
+                          title="Extract Text from Image"
+                        >
+                          {isExtracting ? '⏳ Scanning...' : '📄 Scan Text'}
+                        </span>
+                        <input
+                          type="file"
+                          multiple
+                          ref={ocrInputRef}
+                          hidden
+                          accept="image/*"
+                          onChange={handleOCR}
+                        />
                       </div>
                     </div>
 
