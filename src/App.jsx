@@ -194,6 +194,7 @@ function App() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Book Interface State
   const [isOpen, setIsOpen] = useState(false);
@@ -427,6 +428,22 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [currentDate, isOpen, view, hasUnsavedChanges]);
 
+  // Download Book Logic
+  const handleExportBook = async () => {
+    if (window.confirm("Download all saved entries as a book?")) {
+      setIsExporting(true);
+      try {
+        const { exportBookPDF } = await import('./exportBook');
+        await exportBookPDF(MOODS);
+      } catch (e) {
+        console.error("Export Failed", e);
+        alert("Failed to export book. See console for details.");
+      } finally {
+        setIsExporting(false);
+      }
+    }
+  };
+
   // AI Logic
   const handleSummarize = async () => {
     if (!text.trim()) return;
@@ -540,6 +557,14 @@ function App() {
   };
 
   if (authLoading) return <div className="loading-screen">Loading ReLive...</div>;
+  if (isExporting) return (
+    <div className="loading-screen" style={{ flexDirection: 'column', gap: '20px' }}>
+      <div style={{ fontFamily: 'var(--font-primary, serif)', fontStyle: 'italic', fontSize: '1.5rem', color: '#c5a065' }}>
+        Preparing your book...
+      </div>
+      <div className="ink-dots" style={{ fontSize: '2rem', color: '#c5a065', letterSpacing: '5px' }}>...</div>
+    </div>
+  );
 
   if (!user) {
     return (
@@ -734,6 +759,7 @@ function App() {
                 <div className={`book-tab ${view === 'search' ? 'active' : ''}`} onClick={() => toView('search')} title="Search">Q</div>
                 <div className={`book-tab ${view === 'favorites' ? 'active' : ''}`} onClick={() => toView('favorites')} title="Favorites">★</div>
                 <div className={`book-tab ${view === 'themes' ? 'active' : ''}`} onClick={() => toView('themes')} title="Ambiance">🎨</div>
+                <div className="book-tab" onClick={(e) => { e.stopPropagation(); handleExportBook(); }} title="Download Book" style={{ color: '#c5a065' }}>📥</div>
                 {view !== 'editor' && <div className="book-tab" onClick={() => toView('editor')} title="Write">✎</div>}
 
                 {/* Theme Selectors Removed */}
