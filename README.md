@@ -29,7 +29,9 @@ Customize your writing environment to match your mood. The entire application—
 - **Focus-First Editor**: A clean, distraction-free writing surface on realistic lined paper.
 - **Multimedia Support**:
   - 📸 **Polaroid Photos**: Upload images that render as vintage polaroid prints on your page.
+  - 📄 **Image OCR**: Automatically extract and scan printed or handwritten text from your uploaded images into your diary.
   - 🎙️ **Voice Notes**: Record, save, and play back audio memories natively within your entry.
+  - ✒️ **Audio-to-Text Transcription**: 100% free, offline, in-browser audio transcription powered by Xenova/Transformers (Whisper-Tiny) WebAssembly. Upload any audio file and watch it transcribe perfectly into your entry without cloud fees or api keys.
 - **Mood Tracking**: Log your daily emotional state with expressive icons.
 - **Tags & Metadata**: Organize your thoughts with flexible hashtags and "pinned" favorites.
 - **AI Reflection**: (Experimental) On-demand summarization to help you find clarity in your ramblings.
@@ -39,6 +41,7 @@ Customize your writing environment to match your mood. The entire application—
 - **Timeline**: A vertically scrolling feed of your life's story.
 - **Universal Search**: Instantly find specific memories, tags, or dates.
 - **Favorites Collection**: Quick access to your most cherished moments.
+- **📥 Download Complete Book**: Export your entire diary chronologically into a beautifully styled, high-resolution PDF that flawlessly visually mimics the physics and styles of your chosen ReLive open-book UI.
 - **Keyboard Shortcuts**:
   - `Ctrl + Arrow Left/Right`: Navigate days.
   - `Ctrl + F`: Open Search.
