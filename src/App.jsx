@@ -194,6 +194,8 @@ function App() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isTranscribingFile, setIsTranscribingFile] = useState(false);
+  const [transcribeProgress, setTranscribeProgress] = useState('');
   const [isExporting, setIsExporting] = useState(false);
 
   // Book Interface State
@@ -226,6 +228,7 @@ function App() {
 
   const fileInputRef = useRef(null);
   const ocrInputRef = useRef(null);
+  const audioOcrInputRef = useRef(null);
   const editorRef = useRef(null);
 
   // Derived Date Key: YYYY-MM-DD
@@ -461,6 +464,62 @@ function App() {
   // Tag Helpers
   const addTag = () => { const t = tagInput.trim(); if (t && !tags.includes(t)) { setTags([...tags, t]); setTagInput(''); } };
   const removeTag = (t) => setTags(tags.filter(x => x !== t));
+
+  // Audio File OCR Logic (Free Offline Version via Xenova Transformers)
+  const handleAudioFileOCR = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsTranscribingFile(true);
+    setTranscribeProgress('Loading Local Model...');
+    try {
+      const { pipeline, env } = await import('@xenova/transformers');
+      env.allowLocalModels = false; // skip dev server check
+
+      const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
+        progress_callback: (info) => {
+          if (info.status === 'progress') {
+            setTranscribeProgress(`Downloading AI: ${Math.round(info.progress)}%`);
+          } else if (info.status === 'ready') {
+            setTranscribeProgress('Processing Audio Format...');
+          }
+        }
+      });
+
+      setTranscribeProgress('Decoding PCM Audio...');
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const audioData = audioBuffer.getChannelData(0);
+
+      setTranscribeProgress('Transcribing Audio...');
+      const result = await transcriber(audioData);
+
+      if (result && result.text) {
+        const txt = result.text.trim();
+        if (editorRef.current) {
+          const start = editorRef.current.selectionStart;
+          const end = editorRef.current.selectionEnd;
+          setText(prev => prev.substring(0, start) + txt + prev.substring(end));
+          setTimeout(() => {
+            if (editorRef.current) {
+              editorRef.current.selectionStart = editorRef.current.selectionEnd = start + txt.length;
+              editorRef.current.focus();
+            }
+          }, 0);
+        } else {
+          setText(prev => (prev ? prev + '\n\n' : '') + txt);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error: " + err.message);
+    } finally {
+      setIsTranscribingFile(false);
+      setTranscribeProgress('');
+      if (audioOcrInputRef.current) audioOcrInputRef.current.value = null;
+    }
+  };
 
   // OCR Logic
   const handleOCR = async (e) => {
@@ -872,12 +931,28 @@ function App() {
                       <div style={{ marginLeft: 'auto', display: 'flex', gap: '15px', alignItems: 'center' }}>
                         {/* Audio Button - REMOVED (Moved to Left Page) */}
 
+                        {/* Audio File OCR Button */}
+                        <span
+                          style={{ cursor: 'pointer', opacity: isTranscribingFile ? 0.4 : 0.6, pointerEvents: (isExtracting || isTranscribingFile) ? 'none' : 'auto' }}
+                          onClick={() => audioOcrInputRef.current?.click()}
+                          title="Extract Text from Audio File"
+                        >
+                          {isTranscribingFile ? (transcribeProgress || '⏳ Transcribing...') : '🎙️ Scan Audio'}
+                        </span>
+                        <input
+                          type="file"
+                          ref={audioOcrInputRef}
+                          hidden
+                          accept="audio/*"
+                          onChange={handleAudioFileOCR}
+                        />
+
                         {/* AI Button */}
                         <span style={{ cursor: 'pointer', opacity: 0.6 }} onClick={handleSummarize} title="AI Reflection">✧ Reflection</span>
 
                         {/* OCR Button */}
                         <span
-                          style={{ cursor: 'pointer', opacity: isExtracting ? 0.4 : 0.6, pointerEvents: isExtracting ? 'none' : 'auto' }}
+                          style={{ cursor: 'pointer', opacity: isExtracting ? 0.4 : 0.6, pointerEvents: (isExtracting || isTranscribingFile) ? 'none' : 'auto' }}
                           onClick={() => ocrInputRef.current?.click()}
                           title="Extract Text from Image"
                         >
