@@ -18,11 +18,20 @@ const getBase64ImageFromUrl = async (imageUrl) => {
     }
 };
 
-export const exportBookPDF = async (MOODS) => {
+export const exportBookPDF = async (MOODS, isExportingRecaps = false) => {
     const entriesObj = await getAllEntries();
 
-    // Sort chronologically (oldest to newest)
-    const sortedDates = Object.keys(entriesObj).sort();
+    let sortedDates = [];
+    if (isExportingRecaps) {
+        sortedDates = Object.keys(entriesObj).filter(k => k.startsWith('recap_')).sort((a, b) => {
+            const timeA = parseInt(a.split('_')[1] || 0);
+            const timeB = parseInt(b.split('_')[1] || 0);
+            return timeA - timeB;
+        });
+    } else {
+        // Sort chronologically (oldest to newest), filtering out anything that isn't a date string
+        sortedDates = Object.keys(entriesObj).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+    }
 
     // Create new PDF Document
     // Using A5 dimensions for a realistic book feel
@@ -101,15 +110,29 @@ export const exportBookPDF = async (MOODS) => {
         doc.setFillColor(240, 235, 225);
         doc.rect(4, 0, 4, 210, 'F');
 
-        // Header: Date
+        // Header: Date or Title
         doc.setFont('times', 'bold');
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
 
-        const [year, month, day] = dateKey.split('-');
-        const dateObj = new Date(year, month - 1, day);
-        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-        doc.text(dateStr, 15, 20);
+        if (isExportingRecaps) {
+            const title = data.recapTitle || (data.text || '').split('\n')[0].substring(0, 30) || 'Previous Experience';
+            doc.text(title, 15, 20);
+
+            if (data.updatedAt) {
+                const dateObj = new Date(data.updatedAt);
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                doc.setFont('times', 'italic');
+                doc.setFontSize(9);
+                doc.setTextColor(150, 150, 150);
+                doc.text(dateStr, 15, 25);
+            }
+        } else {
+            const [year, month, day] = dateKey.split('-');
+            const dateObj = new Date(year, month - 1, day);
+            const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            doc.text(dateStr, 15, 20);
+        }
 
         // Sub-Header: Favorite and Mood
         let headerRightX = 135;
@@ -223,5 +246,6 @@ export const exportBookPDF = async (MOODS) => {
 
     // Save PDF using File Naming Convention
     const currentYear = new Date().getFullYear();
-    doc.save(`ReLive_Diary_${currentYear}.pdf`);
+    const filename = isExportingRecaps ? `ReLive_Experiences_${currentYear}.pdf` : `ReLive_Diary_${currentYear}.pdf`;
+    doc.save(filename);
 };

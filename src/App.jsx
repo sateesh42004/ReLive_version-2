@@ -3,6 +3,7 @@ import { createWorker } from 'tesseract.js';
 import Calendar from './Calendar';
 import Timeline from './Timeline';
 import Search from './Search';
+import RecapsList from './components/RecapsList';
 import { jsPDF } from 'jspdf';
 import './App.css';
 import './DeleteStyles.css';
@@ -175,6 +176,7 @@ function App() {
 
   // Data State
   const [text, setText] = useState('');
+  const [recapTitle, setRecapTitle] = useState('');
   const [tags, setTags] = useState([]);
   const [images, setImages] = useState([]);
   const [audioNotes, setAudioNotes] = useState([]);
@@ -199,6 +201,8 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
 
   // Book Interface State
+  const [isRecapMode, setIsRecapMode] = useState(false);
+  const [recapId, setRecapId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [flipping, setFlipping] = useState(false);
   const [prevDateData, setPrevDateData] = useState(null);
@@ -231,13 +235,17 @@ function App() {
   const audioOcrInputRef = useRef(null);
   const editorRef = useRef(null);
 
-  // Derived Date Key: YYYY-MM-DD
+  // Derived Date Key: YYYY-MM-DD or recap_ID
   const dateKey = useMemo(() => {
+    if (isRecapMode && recapId) {
+      if (recapId.startsWith('recap_')) return recapId;
+      return `recap_${recapId}`;
+    }
     const y = currentDate.getFullYear();
     const m = String(currentDate.getMonth() + 1).padStart(2, '0');
     const d = String(currentDate.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
-  }, [currentDate]);
+  }, [currentDate, isRecapMode, recapId]);
 
   // Theme State
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -281,7 +289,7 @@ function App() {
   useEffect(() => {
     if (!user) {
       // Clear state if not logged in
-      setText(''); setTags([]); setIsFavorite(false); setImages([]); setAudioNotes([]); setMood(null);
+      setText(''); setRecapTitle(''); setTags([]); setIsFavorite(false); setImages([]); setAudioNotes([]); setMood(null);
       return;
     }
 
@@ -293,6 +301,7 @@ function App() {
         if (data) {
           setInitialData(data); // Save for dirty checking
           setText(data.text || '');
+          setRecapTitle(data.recapTitle || '');
           setTags(data.tags || []);
           setIsFavorite(!!data.isFavorite);
           // Ensure arrays
@@ -302,6 +311,7 @@ function App() {
         } else {
           setInitialData({});
           setText('');
+          setRecapTitle('');
           setTags([]);
           setIsFavorite(false);
           setImages([]);
@@ -331,7 +341,7 @@ function App() {
       setLastSaveTime(Date.now());
       // Prepare data (convert audio URLs back to Blobs where possible for reliability)
       const audioWithBlobs = audioNotes.map(url => blobMapRef.current[url] || url);
-      const currentData = { text, tags, isFavorite, images, audioNotes: audioWithBlobs, mood };
+      const currentData = { text, tags, isFavorite, images, audioNotes: audioWithBlobs, mood, recapTitle: isRecapMode ? recapTitle : null };
 
       // Upload & Sync
       const { images: newImages, audioNotes: newAudio } = await syncEntryToFirebase(dateKey, currentData);
@@ -352,7 +362,7 @@ function App() {
     } finally {
       setIsSaving(false);
     }
-  }, [dateKey, text, tags, isFavorite, images, audioNotes, mood, user]);
+  }, [dateKey, text, recapTitle, isRecapMode, tags, isFavorite, images, audioNotes, mood, user]);
 
   const hasUnsavedChanges = useCallback(() => {
     // If we haven't loaded data yet, we can't have "unsaved changes" relative to DB
@@ -361,8 +371,9 @@ function App() {
     // Helper to normalize strings (treat null, undefined, "" as same)
     const norm = (str) => str || '';
 
-    // 1. Text Check
+    // 1. Text & Title Check
     if (norm(text) !== norm(initialData.text)) return true;
+    if (isRecapMode && norm(recapTitle) !== norm(initialData.recapTitle)) return true;
 
     // 2. Mood Check
     if ((mood || null) !== (initialData.mood || null)) return true;
@@ -386,7 +397,7 @@ function App() {
     if (currentAudio.length !== savedAudio.length) return true;
 
     return false;
-  }, [text, tags, isFavorite, images.length, audioNotes.length, mood, initialData]);
+  }, [text, recapTitle, isRecapMode, tags, isFavorite, images.length, audioNotes.length, mood, initialData]);
 
   // Navigation Wrappers
   const confirmNav = () => {
@@ -401,13 +412,17 @@ function App() {
   const toView = (v) => {
     if (v === view || !confirmNav()) return;
     setFlipping(true);
-    setTimeout(() => { setView(v); setFlipping(false); }, 600); // Wait for page half-flip
+    setTimeout(() => {
+      if (v !== 'editor' && v !== 'recaps') setIsRecapMode(false);
+      setView(v);
+      setFlipping(false);
+    }, 600); // Wait for page half-flip
   };
 
   const toDate = (d) => {
     if (!confirmNav()) return;
     setFlipping(true);
-    setTimeout(() => { setCurrentDate(d); setView('editor'); setFlipping(false); }, 600);
+    setTimeout(() => { setIsRecapMode(false); setCurrentDate(d); setView('editor'); setFlipping(false); }, 600);
   };
 
   // Keyboard Shortcuts
@@ -421,7 +436,7 @@ function App() {
         else if (isOpen) setIsOpen(false);
       }
       // Date Nav
-      if ((e.ctrlKey || e.metaKey) && !isInput) {
+      if ((e.ctrlKey || e.metaKey) && !isInput && !isRecapMode) {
         const d = new Date(currentDate);
         if (e.key === 'ArrowLeft') { d.setDate(d.getDate() - 1); toDate(d); }
         if (e.key === 'ArrowRight') { d.setDate(d.getDate() + 1); toDate(d); }
@@ -433,11 +448,14 @@ function App() {
 
   // Download Book Logic
   const handleExportBook = async () => {
-    if (window.confirm("Download all saved entries as a book?")) {
+    const isExportingRecaps = isRecapMode || view === 'recaps';
+    const msg = isExportingRecaps ? "Download all Previous Experiences as a book?" : "Download all saved diary entries as a book?";
+
+    if (window.confirm(msg)) {
       setIsExporting(true);
       try {
         const { exportBookPDF } = await import('./exportBook');
-        await exportBookPDF(MOODS);
+        await exportBookPDF(MOODS, isExportingRecaps);
       } catch (e) {
         console.error("Export Failed", e);
         alert("Failed to export book. See console for details.");
@@ -540,7 +558,6 @@ function App() {
       });
 
       let allText = '';
-      let processedCount = 0;
 
       for (const file of files) {
         // Pre-process image for better contrast/resolution
@@ -557,7 +574,6 @@ function App() {
 
           allText += (allText ? '\n\n---\n\n' : '') + cleanText;
         }
-        processedCount++;
       }
 
       await worker.terminate();
@@ -715,14 +731,14 @@ function App() {
           <>
             {/* Left Page: Media Memories & Audio */}
             <div className="layer page left" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-              <div className="nav-arrow left" onClick={(e) => {
+              {!isRecapMode && <div className="nav-arrow left" onClick={(e) => {
                 e.stopPropagation();
                 const d = new Date(currentDate);
                 d.setDate(d.getDate() - 1);
                 toDate(d);
               }} title="Previous Day">
                 &#10094;
-              </div>
+              </div>}
 
               {/* TOP HALF: IMAGES */}
               <div className="split-top">
@@ -802,19 +818,20 @@ function App() {
             {/* Right Page: Active Editor & Views */}
             <div className={`layer page right ${flipping ? 'flipping' : ''}`}>
               {/* Profile Header - Removed, moved to Cover */}
-              <div className="nav-arrow right" onClick={(e) => {
+              {!isRecapMode && <div className="nav-arrow right" onClick={(e) => {
                 e.stopPropagation();
                 const d = new Date(currentDate);
                 d.setDate(d.getDate() + 1);
                 toDate(d);
               }} title="Next Day">
                 &#10095;
-              </div>
+              </div>}
 
               {/* Divider Tabs */}
               <div className="book-tabs">
                 <div className={`book-tab ${view === 'calendar' ? 'active' : ''}`} onClick={() => toView('calendar')} title="Calendar">C</div>
                 <div className={`book-tab ${view === 'timeline' ? 'active' : ''}`} onClick={() => toView('timeline')} title="History">H</div>
+                <div className={`book-tab ${view === 'recaps' ? 'active' : ''}`} onClick={() => toView('recaps')} title="Recaps & Experiences">💭</div>
                 <div className={`book-tab ${view === 'search' ? 'active' : ''}`} onClick={() => toView('search')} title="Search">Q</div>
                 <div className={`book-tab ${view === 'favorites' ? 'active' : ''}`} onClick={() => toView('favorites')} title="Favorites">★</div>
                 <div className={`book-tab ${view === 'themes' ? 'active' : ''}`} onClick={() => toView('themes')} title="Ambiance">🎨</div>
@@ -845,6 +862,11 @@ function App() {
                   {view === 'favorites' && <MemoizedTimeline onEntrySelect={(d) => {
                     const [y, m, day] = d.split('-').map(Number); toDate(new Date(y, m - 1, day));
                   }} onlyFavorites={true} />}
+                  {view === 'recaps' && <RecapsList onRecapSelect={(id) => {
+                    setRecapId(id); setIsRecapMode(true); setView('editor');
+                  }} onCreateNew={() => {
+                    setRecapId(Date.now().toString()); setIsRecapMode(true); setView('editor');
+                  }} />}
                   {view === 'themes' && <Themes themes={THEMES} currentTheme={currentTheme} onSelect={setCurrentTheme} onClose={() => toView('editor')} />}
                 </div>
               ) : (
@@ -873,19 +895,44 @@ function App() {
                         >
                           {isFavorite ? '★' : '☆'}
                         </div>
-                        <span className="dd-day">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                        {isRecapMode ? (
+                          <span className="dd-day">Previous Experience</span>
+                        ) : (
+                          <span className="dd-day">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                        )}
                       </div>
-                      <span className="dd-date">{currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                      {!isRecapMode && <span className="dd-date">{currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>}
                     </div>
                   </div>
 
                   {/* Editor */}
                   <div className="editor-container">
                     {dataLoading && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.5 }}>Loading...</div>}
-                    {!dataLoading && !text && !promptsDismissed && currentPrompt && (
+                    {!dataLoading && !text && !promptsDismissed && currentPrompt && !isRecapMode && (
                       <div className="ink-prompt">{currentPrompt}
                         <span onClick={handleDismissPrompts} style={{ cursor: 'pointer', marginLeft: 10, fontStyle: 'normal' }}>x</span>
                       </div>
+                    )}
+
+                    {isRecapMode && (
+                      <input
+                        type="text"
+                        value={recapTitle}
+                        onChange={(e) => setRecapTitle(e.target.value)}
+                        placeholder="Title of Experience..."
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          borderBottom: '1px solid rgba(0,0,0,0.1)',
+                          fontFamily: 'var(--font-display, serif)',
+                          fontSize: '2rem',
+                          color: 'var(--ink-color)',
+                          padding: '10px 0',
+                          marginBottom: '15px',
+                          outline: 'none'
+                        }}
+                      />
                     )}
 
                     <textarea
