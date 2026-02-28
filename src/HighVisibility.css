@@ -1,0 +1,178 @@
+/* Override global opacities for better visibility */
+
+/* Ensure text is sharp and dark */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headers */
+.dd-day {
+    color: #2c1e15 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+    opacity: 1 !important;
+}
+
+.audio-header {
+    color: #4a3b32 !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+}
+
+/* Buttons */
+button {
+    opacity: 1 !important;
+    /* Force visibility */
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+/* Specific Action Buttons */
+.split-top button,
+.split-bottom button {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    color: #333 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.split-top button:hover,
+.split-bottom button:hover {
+    background: #fff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #000 !important;
+}
+
+/* Empty States */
+.empty-state-media {
+    opacity: 0.8 !important;
+    /* Make empty state text clearer */
+    color: #555 !important;
+    background: rgba(255, 255, 255, 0.4);
+    border: 2px dashed rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin: 20px;
+}
+
+.empty-state-media span {
+    color: #444;
+    font-weight: 500;
+}
+
+/* Delete Buttons */
+.polaroid-delete {
+    opacity: 1 !important;
+    /* Always visible for clarity? Or keep hover? Let's keep hover but make it pop more */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+    background: #e74c3c !important;
+}
+
+.audio-delete {
+    opacity: 0.8 !important;
+    /* Make trash icon more visible by default */
+    color: #c0392b !important;
+}
+
+.audio-delete:hover {
+    opacity: 1 !important;
+    transform: scale(1.15) !important;
+}
+
+/* Audio Player Items */
+.audio-item {
+    background: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Inputs and Textareas */
+.editor-textarea {
+    color: #1a1a1a !important;
+    /* Darker ink */
+}
+
+.editor-textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4) !important;
+    /* Darker placeholder */
+}
+
+/* Tag Inputs & Tags */
+.tags-row {
+    color: #555 !important;
+}
+
+.tags-row input {
+    color: #111 !important;
+    border-bottom: 2px solid #555 !important;
+    /* Thicker and darker line */
+    font-weight: 500;
+}
+
+.tag-item {
+    color: #2c3e50 !important;
+    /* Dark blue-grey for tags */
+    opacity: 1 !important;
+    font-weight: 500 !important;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.tags-row span[style*="opacity: 0.5"] {
+    /* "+ tag" button */
+    opacity: 1 !important;
+    color: #2980b9 !important;
+    /* Bright link color */
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Reflection / AI Button */
+.tags-row span[title="AI Reflection"] {
+    opacity: 1 !important;
+    color: #8e44ad !important;
+    /* Purple for AI/Reflection to make it pop */
+    font-weight: 600 !important;
+    background: rgba(142, 68, 173, 0.1);
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: 1px solid rgba(142, 68, 173, 0.3);
+    transition: all 0.2s ease;
+}
+
+.tags-row span[title="AI Reflection"]:hover {
+    background: rgba(142, 68, 173, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(142, 68, 173, 0.2);
+}
+
+/* Logout Button */
+.logout-btn {
+    border: none !important;
+    background: #d32f2f !important;
+    /* Red background */
+    color: white !important;
+    cursor: pointer !important;
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+    border-radius: 15px !important;
+    font-weight: 600 !important;
+    transition: background 0.2s, transform 0.2s !important;
+    text-decoration: none !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+.logout-btn:hover {
+    background: #b71c1c !important;
+    /* Darker red */
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}

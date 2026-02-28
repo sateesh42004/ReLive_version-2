@@ -1,0 +1,130 @@
+/* Image Gallery - Replaces Absolute Positioning */
+.image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px dashed var(--line-color);
+    min-height: 120px;
+    align-items: center;
+}
+
+/* Redefine Polaroid for Gallery Flow */
+.polaroid {
+    position: relative !important;
+    /* Override absolute */
+    bottom: auto !important;
+    right: auto !important;
+    width: 100px;
+    height: 100px;
+    transform: rotate(-2deg);
+    margin: 5px;
+    border-width: 4px;
+    border-bottom-width: 12px;
+    flex-shrink: 0;
+}
+
+.polaroid:nth-child(even) {
+    transform: rotate(3deg);
+}
+
+.polaroid:hover {
+    transform: scale(1.1) rotate(0deg);
+    z-index: 50;
+}
+
+/* Audio Section - Distinct Area */
+.audio-section {
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.03);
+    /* Slightly darker/distinct background */
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.audio-header {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--subtitle-color);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.audio-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.audio-item:last-child {
+    margin-bottom: 0;
+}
+
+.audio-item audio {
+    height: 28px;
+    opacity: 0.9;
+    flex-grow: 1;
+}
+
+.audio-delete {
+    font-size: 1rem;
+    opacity: 0.6;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.audio-delete:hover {
+    opacity: 1;
+    color: #d32f2f;
+}
+
+/* Split View Layout for Left Page */
+.split-top {
+    flex: 1;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    position: relative;
+    min-height: 0;
+    /* Important for flex shrink */
+}
+
+.split-bottom {
+    flex: 1;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.02);
+    min-height: 0;
+    /* Important for flex shrink */
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Empty State Styling */
+.empty-state-media {
+    padding: 40px;
+    text-align: center;
+    opacity: 0.5;
+    font-style: italic;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.empty-state-media:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+}
