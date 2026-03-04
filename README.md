@@ -55,7 +55,7 @@ ReLive functions as a single-page React application that synchronizes state betw
 1. **State & UI**: The app uses a React-based frontend to render a 3D-like book interface. Custom hooks and context providers manage daily entries, media uploads, and theme configurations.
 2. **Authentication**: Users sign in securely using Firebase Authentication, establishing a unique session to isolate their personal data.
 3. **Data Management**: When a user writes an entry, the text and metadata (tags, mood, date) are instantly saved to Firebase Firestore as structured documents.
-4. **Media Handling (Hybrid Cloud)**: If a user attaches a photo or a voice note, the app routes this heavy asset to Supabase Storage via a custom `sync.js` engine. Once Supabase returns a stable URL for the file, that reference is securely attached to the user's entry in Firestore.
+4. **Media Handling (Media Cloud)**: If a user attaches a photo or a voice note, the app routes this heavy asset to Cloudinary via a custom `sync.js` engine. Once Cloudinary returns a stable URL for the file, that reference is securely attached to the user's entry in Firestore.
 5. **Real-time Synchronization**: The app listens for updates. As soon as an entry is saved or modified, the visual timeline and calendar views update instantly to reflect the changes, ensuring a fast, local-first feel.
 
 ---
@@ -70,8 +70,8 @@ ReLive v3 utilizes a modern **Hybrid Cloud** architecture to optimize for perfor
 | **Styling** | CSS Variables | Advanced custom theming engine without heavy CSS frameworks. |
 | **Authentication** | Firebase Auth | Secure, one-click Google Sign-In integration. |
 | **Database** | Firebase Firestore | Real-time NoSQL database for storing journal text, tags, and metadata. |
-| **Asset Storage** | Supabase Storage | High-capacity object storage handling audio blobs and image uploads. |
-| **Synchronization** | Custom Sync Engine | "Hybrid" logic (`sync.js`) that orchestrates uploads to Supabase while saving references to Firebase. |
+| **Asset Storage** | Cloudinary | High-capacity object storage handling audio blobs and image uploads. |
+| **Synchronization** | Custom Sync Engine | Logic (`sync.js`) that orchestrates uploads to Cloudinary while saving references to Firebase. |
 
 ---
 
@@ -80,7 +80,7 @@ ReLive v3 utilizes a modern **Hybrid Cloud** architecture to optimize for perfor
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - A **Firebase Project** with Authentication and Firestore enabled.
-- A **Supabase Project** with a storage bucket named `uploads` (set to public for read access).
+- A **Cloudinary Account** for media storage.
 
 ### Installation
 
@@ -104,9 +104,9 @@ ReLive v3 utilizes a modern **Hybrid Cloud** architecture to optimize for perfor
    VITE_FIREBASE_PROJECT_ID=your_project_id
    ...
 
-   # Supabase Config
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Add your own Cloudinary details directly in src/firebase/sync.js
+   # CLOUDINARY_CLOUD_NAME=your_cloud_name
+   # CLOUDINARY_UPLOAD_PRESET=your_preset
    ```
 
 4. **Run Locally**
@@ -121,7 +121,13 @@ To create a strictly optimized production build:
 ```bash
 npm run build
 ```
-The output will be in the `dist/` folder, ready for deployment on Vercel or Firebase Hosting.
+The output will be in the `dist/` folder, ready for deployment on Netlify, Vercel, or Firebase Hosting.
+
+#### Deploying to Netlify
+The app includes a `public/_redirects` file essential for React Router SPA (Single Page Applications). You can easily deploy via the Netlify CLI:
+```bash
+npx netlify-cli deploy --prod --dir=dist
+```
 
 ---
 
