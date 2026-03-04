@@ -8,25 +8,33 @@ import {
     where,
     orderBy
 } from "firebase/firestore";
-import { db, auth } from "./config";// --- Helpers ---
+import { db, auth } from "./config";
 
-const getUid = () => {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-    return user.uid;
+const getUidAsync = async () => {
+    if (auth.currentUser) return auth.currentUser.uid;
+    return new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            if (user) resolve(user.uid);
+            else reject(new Error("User not authenticated"));
+        });
+    });
 };
 
-// Transforms an entry from DB (with paths) to UI (with signed URLs)
-// Since we are moving to Firebase Storage, URLs are publicly readable/persistent.
-// Supabase logic is removed to avoid timeout errors for users with ISP blocks.
 const transformEntryForRead = async (entry) => {
     return entry;
 };
 
 // --- Entry Functions ---
 
-export const saveEntry = async (dateKey, data) => {
-    const uid = getUid();
+export const saveEntry = async (uidOrDateKey, dateKeyOrData, maybeData) => {
+    let uid, dateKey, data;
+    if (maybeData !== undefined) {
+        uid = uidOrDateKey; dateKey = dateKeyOrData; data = maybeData;
+    } else {
+        uid = await getUidAsync(); dateKey = uidOrDateKey; data = dateKeyOrData;
+    }
+    if (!uid) throw new Error("No UID provided");
     const docRef = doc(db, "users", uid, "entries", dateKey);
 
     await setDoc(docRef, {
@@ -35,8 +43,14 @@ export const saveEntry = async (dateKey, data) => {
     }, { merge: true });
 };
 
-export const getEntry = async (dateKey) => {
-    const uid = getUid();
+export const getEntry = async (uidOrDateKey, maybeDateKey) => {
+    let uid, dateKey;
+    if (maybeDateKey !== undefined) {
+        uid = uidOrDateKey; dateKey = maybeDateKey;
+    } else {
+        uid = await getUidAsync(); dateKey = uidOrDateKey;
+    }
+    if (!uid) throw new Error("No UID provided");
     const docRef = doc(db, "users", uid, "entries", dateKey);
     const snap = await getDoc(docRef);
 
@@ -48,8 +62,9 @@ export const getEntry = async (dateKey) => {
     }
 };
 
-export const getAllEntries = async () => {
-    const uid = getUid();
+export const getAllEntries = async (providedUid) => {
+    const uid = providedUid || await getUidAsync().catch(() => null);
+    if (!uid) return {};
     const entriesRef = collection(db, "users", uid, "entries");
     const q = query(entriesRef, orderBy("updatedAt", "desc"));
 

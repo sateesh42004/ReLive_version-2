@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { createWorker } from 'tesseract.js';
 import Calendar from './Calendar';
 import Timeline from './Timeline';
@@ -199,6 +200,7 @@ function App() {
   const [isTranscribingFile, setIsTranscribingFile] = useState(false);
   const [transcribeProgress, setTranscribeProgress] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Book Interface State
   const [isRecapMode, setIsRecapMode] = useState(false);
@@ -297,7 +299,7 @@ function App() {
       setDataLoading(true);
       setSummary(null);
       try {
-        const data = await getEntry(dateKey); // Firebase DB
+        const data = await getEntry(user.uid, dateKey); // Firebase DB
         if (data) {
           setInitialData(data); // Save for dirty checking
           setText(data.text || '');
@@ -749,23 +751,50 @@ function App() {
 
                 {images.length > 0 ? (
                   <div className="image-gallery" style={{ border: 'none', background: 'transparent' }}>
-                    {images.map((src, i) => (
-                      <div key={i} className="polaroid">
-                        <img src={src} alt="Memory" onClick={() => {/* Optional: View Fullscreen */ }} />
-                        <div
-                          className="polaroid-delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm("Are you sure you want to delete this photo?")) {
-                              setImages(p => p.filter((_, idx) => idx !== i));
-                            }
-                          }}
-                          title="Delete Photo"
-                        >
-                          ×
+                    {images.map((imgObj, i) => {
+                      const src = typeof imgObj === 'object' ? imgObj.src : imgObj;
+                      const title = typeof imgObj === 'object' ? (imgObj.title || '') : '';
+                      return (
+                        <div key={i} className="polaroid">
+                          <img src={src} alt={title || "Memory"} style={{ width: '100%', height: '90px', objectFit: 'cover', cursor: 'zoom-in' }} onClick={() => setSelectedImage({ src, title })} />
+                          <input
+                            type="text"
+                            value={title}
+                            placeholder="Add a title..."
+                            onChange={(e) => {
+                              const newImages = [...images];
+                              newImages[i] = { src, title: e.target.value };
+                              setImages(newImages);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              width: '100%',
+                              marginTop: '5px',
+                              border: 'none',
+                              borderBottom: '1px dashed rgba(0,0,0,0.2)',
+                              background: 'transparent',
+                              textAlign: 'center',
+                              fontFamily: 'var(--font-primary, serif)',
+                              fontSize: '0.9rem',
+                              outline: 'none',
+                              color: 'var(--ink-color, #333)'
+                            }}
+                          />
+                          <div
+                            className="polaroid-delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm("Are you sure you want to delete this photo?")) {
+                                setImages(p => p.filter((_, idx) => idx !== i));
+                              }
+                            }}
+                            title="Delete Photo"
+                          >
+                            ×
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="empty-state-media" onClick={() => fileInputRef.current?.click()}>
@@ -954,7 +983,7 @@ function App() {
 
                     {/* Photo Button - REMOVED (Moved to Left Page) */}
                     <input type="file" ref={fileInputRef} hidden onChange={(e) => Array.from(e.target.files).forEach(f => {
-                      if (f.type.startsWith('image/')) { const r = new FileReader(); r.onload = x => setImages(p => [...p, x.target.result]); r.readAsDataURL(f); }
+                      if (f.type.startsWith('image/')) { const r = new FileReader(); r.onload = x => setImages(p => [...p, { src: x.target.result, title: '' }]); r.readAsDataURL(f); }
                     })} />
 
 
@@ -1025,6 +1054,19 @@ function App() {
         )}
 
       </div>
+
+      {/* Fullscreen Image Modal Overlay using Portal */}
+      {selectedImage && createPortal(
+        <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="image-modal-close" onClick={() => setSelectedImage(null)}>×</div>
+            <img src={selectedImage.src} alt={selectedImage.title || "Memory Detail"} className="image-modal-img" />
+            {selectedImage.title && <div className="image-modal-title">{selectedImage.title}</div>}
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }

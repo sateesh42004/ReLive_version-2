@@ -69,25 +69,99 @@ export const exportBookPDF = async (MOODS, isExportingRecaps = false) => {
             let imgY = 20;
             const margin = 24;
             const maxWidth = 100; // 148 - 24 - 24
-            for (const imgUrl of data.images) {
-                if (imgY > 180) break; // Arbitrary limit per page
+            for (const imageItem of data.images) {
+                if (imgY > 180) {
+                    // Add Page Number to left margin of CURRENT page before turning
+                    doc.setFont('times', 'italic');
+                    doc.setFontSize(9);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(String(doc.internal.getNumberOfPages()), 15, 200);
 
-                // Fetch image data to embed
-                const base64 = await getBase64ImageFromUrl(imgUrl);
-                if (base64) {
-                    // Quick way to draw. In production, aspect ratio calculations are best.
-                    doc.addImage(base64, 'JPEG', margin, imgY, maxWidth, 75, undefined, 'FAST');
+                    doc.addPage();
+                    // Background - Soft parchment
+                    doc.setFillColor(248, 244, 236);
+                    doc.rect(0, 0, 148, 210, 'F');
+
+                    // Spine Shadow (Left Page: deep shadow on the right side)
+                    doc.setFillColor(235, 230, 220);
+                    doc.rect(144, 0, 4, 210, 'F');
+                    doc.setFillColor(240, 235, 225);
+                    doc.rect(140, 0, 4, 210, 'F');
+                    imgY = 20;
+                }
+
+                const imgUrl = typeof imageItem === 'object' ? imageItem.src : imageItem;
+                const imgTitle = typeof imageItem === 'object' ? imageItem.title : '';
+
+                // Fetch image data to embed and get natural dimensions
+                const imgData = await new Promise(async (resolve) => {
+                    const base64 = await getBase64ImageFromUrl(imgUrl);
+                    if (!base64) return resolve(null);
+
+                    const img = new Image();
+                    img.onload = () => {
+                        resolve({ base64, width: img.width, height: img.height });
+                    };
+                    img.onerror = () => resolve(null);
+                    img.src = base64;
+                });
+
+                if (imgData) {
+                    const { base64, width, height } = imgData;
+
+                    // Calculate proportional height based on a fixed maxWidth of 100mm
+                    const ratio = height / width;
+                    const calculatedHeight = maxWidth * ratio;
+
+                    // If a single image is extremely tall (e.g. panoramic vertical), cap it
+                    const finalHeight = calculatedHeight > 140 ? 140 : calculatedHeight;
+                    const finalWidth = calculatedHeight > 140 ? (140 / ratio) : maxWidth;
+
+                    // Center the image if width was capped
+                    const xOffset = margin + (maxWidth - finalWidth) / 2;
+
+                    // Check if this specific sized image will overflow the page
+                    if (imgY + finalHeight > 195) {
+                        // Add Page Number to left margin of CURRENT page before turning
+                        doc.setFont('times', 'italic');
+                        doc.setFontSize(9);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text(String(doc.internal.getNumberOfPages()), 15, 200);
+
+                        doc.addPage();
+                        // Background - Soft parchment
+                        doc.setFillColor(248, 244, 236);
+                        doc.rect(0, 0, 148, 210, 'F');
+
+                        // Spine Shadow
+                        doc.setFillColor(235, 230, 220);
+                        doc.rect(144, 0, 4, 210, 'F');
+                        doc.setFillColor(240, 235, 225);
+                        doc.rect(140, 0, 4, 210, 'F');
+                        imgY = 20;
+                    }
+
+                    // Draw Image using 'SLOW' for better quality rendering
+                    doc.addImage(base64, 'JPEG', xOffset, imgY, finalWidth, finalHeight, undefined, 'SLOW');
 
                     // Draw a subtle border frame around the image for aesthetic
                     doc.setDrawColor(220, 210, 200);
                     doc.setLineWidth(1);
-                    doc.rect(margin, imgY, maxWidth, 75);
+                    doc.rect(xOffset, imgY, finalWidth, finalHeight);
 
-                    imgY += 85;
+                    if (imgTitle) {
+                        doc.setFont('times', 'italic');
+                        doc.setFontSize(10);
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(imgTitle, margin + maxWidth / 2, imgY + finalHeight + 5, { align: 'center' });
+                        imgY += finalHeight + 15; // Set cursor below title
+                    } else {
+                        imgY += finalHeight + 10; // Set cursor below image with some padding
+                    }
                 }
             }
 
-            // Add Page Number to left margin
+            // Add Page Number to left margin for the final image page
             doc.setFont('times', 'italic');
             doc.setFontSize(9);
             doc.setTextColor(150, 150, 150);

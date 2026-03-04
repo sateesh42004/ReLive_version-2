@@ -61,24 +61,28 @@ export const syncEntryToFirebase = async (dateKey, entryState) => {
     const newImagesForUI = [];
     const newImagesForDB = [];
 
-    for (const img of (entryState.images || [])) {
-        if (typeof img === 'string' && img.startsWith('data:')) {
+    for (const imgObj of (entryState.images || [])) {
+        const isObject = typeof imgObj === 'object' && imgObj !== null;
+        const src = isObject ? imgObj.src : imgObj;
+        const title = isObject ? (imgObj.title || '') : '';
+
+        if (typeof src === 'string' && src.startsWith('data:')) {
             try {
-                const blob = dataURLToBlob(img);
+                const blob = dataURLToBlob(src);
                 if (!blob) throw new Error("Failed to process image data.");
 
                 const downloadURL = await uploadToCloudinary(blob);
 
-                newImagesForDB.push(downloadURL);
-                newImagesForUI.push(downloadURL);
+                newImagesForDB.push({ src: downloadURL, title });
+                newImagesForUI.push({ src: downloadURL, title });
             } catch (e) {
                 console.error("Sync: Image upload failed", e);
                 const errorStr = e.message || String(e);
                 throw new Error("Image Upload Failed: " + errorStr);
             }
         } else {
-            newImagesForDB.push(img);
-            newImagesForUI.push(img);
+            newImagesForDB.push({ src, title });
+            newImagesForUI.push({ src, title });
         }
     }
 
@@ -134,7 +138,7 @@ export const syncEntryToFirebase = async (dateKey, entryState) => {
         audioNotes: newAudioForDB,
     };
 
-    await saveEntry(dateKey, cleanData);
+    await saveEntry(user.uid, dateKey, cleanData);
 
     return { images: newImagesForUI, audioNotes: newAudioForUI };
 };
